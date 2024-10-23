@@ -1,9 +1,24 @@
 <script setup>
-import { ref, defineProps } from "vue";
+import { ref, defineProps, onMounted, reactive } from "vue";
 import jobData from "@/jobs.json";
 import JobListing from "@/components/JobListing.vue";
+import axios from "axios";
 
-const jobs = ref(jobData);
+const state = reactive({
+  jobs: [],
+  isLoading: true,
+});
+
+onMounted(async () => {
+  try {
+    const response = await axios.get("http://localhost:5000/jobs");
+    state.jobs = response.data;
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+  } finally {
+    state.isLoading = false;
+  }
+});
 
 defineProps({
   limit: Number,
@@ -22,7 +37,7 @@ defineProps({
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <JobListing
-          v-for="job in jobs.slice(0, limit || jobs.length)"
+          v-for="job in state.jobs.slice(0, limit || state.jobs.length)"
           :key="job.id"
           :job="job"
         />
